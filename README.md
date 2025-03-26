@@ -8,7 +8,7 @@ Tool for setting up molecular crystal super cells from CIF files
 - ASE
 - Pymatgen
 - Rdkit
-- Open babel 
+- Open babel(3.1.1)
 - NumPy
 - COD Tools [cod-tools](https://wiki.crystallography.net/cod-tools/)
 
