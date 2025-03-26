@@ -56,7 +56,7 @@ sed -i '/^CONECT/d' "$PDB_FILE"
 ./unique_atom_name.py --input "$PDB_FILE" --output "$UNIQUE_PDB_FILE"
 
 # Step 4: Reorder atoms based on unique PDB
-./reorder-atoms.py --input "$UNIQUE_PDB_FILE" --output "$REORDERED_PDB_FILE" --template "$UNIQUE_PDB_FILE" --input2 "$UNIQUE_PDB_FILE"
+./reorder-atoms.py --input "$UNIQUE_PDB_FILE" --output "$REORDERED_PDB_FILE" --template template.pdb --input2 "$UNIQUE_PDB_FILE"
 
 echo "Atom reordering complete. Proceeding with supercell generation..."
 
