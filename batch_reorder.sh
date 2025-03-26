@@ -6,7 +6,7 @@ for file in mol*.pdb; do
     output="${file%.pdb}_reordered.pdb"
     
     # Run reorder-atoms.py script
-    ./reorder-atoms_new.py --input "$file" --output "$output" --template template.pdb --input2 "$file"
+    ./reorder-atoms.py --input "$file" --output "$output" --template template.pdb --input2 "$file"
 
     echo "Processed: $file -> $output"
 done
