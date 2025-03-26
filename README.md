@@ -34,7 +34,12 @@ Tool for setting up molecular crystal supercells from CIF files
 **Check the new file after each step to ensure that the code is doing the correct task**
 
 ### Use the Example codes to run all the steps simultaneously for template and non-template (with one and more than one molecule) crystals to make the supercell 
-```./template.sh --cif input.cif --matrix a,b,c``` 
+```
+   ./template.sh --cif input.cif --matrix a,b,c 
+   ./nontemplate.sh --cif input.cif --matrix a,b,c 
+   ./nontemplate_morethanone.sh --cif input.cif --matrix a,b,c
+``` 
+
 ## Acknowledgements
 The development of this tool was supported by a DOE Early Career Award (BES Condensed Phase and Interfacial Molecular Science (CPIMS) / DE-SC0024283)
 
