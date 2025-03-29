@@ -37,16 +37,18 @@ fi
 
 # Define filenames based on input CIF
 PDB_FILE="${CIF_FILE}.pdb"
+SDF_FILE="${CIF_FILE}.sdf"
 UNIQUE_PDB_FILE="${CIF_FILE}_unique.pdb"
 SUPERCELL_CIF="supercell.cif"
 SUPERCELL_SDF="supercell.sdf"
 SUPERCELL_PDB="supercell.pdb"
-REORDERED_SUPERCELL_PDB="supercell_reordered.pdb"
+REORDERED_SUPERCELL_PDB="supercell_reorder.pdb"
 
 echo "Processing CIF: $CIF_FILE.cif with matrix: $MATRIX"
 
 # Step 1: Convert CIF to PDB
-obabel "${CIF_FILE}.cif" -O "$PDB_FILE"
+codcif2sdf "${CIF_FILE}.cif" > "$SDF_FILE"
+obabel "$SDF_FILE" -O "$PDB_FILE"
 
 # Step 2: Remove CONECT lines from PDB
 sed -i '/^CONECT/d' "$PDB_FILE"
@@ -79,7 +81,7 @@ obabel mol*_reordered.pdb -O "$SUPERCELL_PDB" --join
 rm -f mol*.pdb
 
 # Step 12: Perform final mapping sequence using template with matrix
-./mapping_sequence.py --input "$SUPERCELL_PDB" --output "$REORDERED_SUPERCELL_PDB" --template template.pdb --matrix "$MATRIX"
+./mapping_sequence.py --input "$SUPERCELL_PDB" --output "$REORDERED_SUPERCELL_PDB" --template template.pdb --input2 "${CIF_FILE}.cif"  --matrix "$MATRIX"
 
 echo "Processing completed. Final reordered supercell PDB: $REORDERED_SUPERCELL_PDB"
 
