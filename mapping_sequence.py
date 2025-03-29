@@ -1,6 +1,27 @@
 #!/usr/bin/env python
+import re
 
-def reorder_atoms(mol_pdb_fname, mol_repeat_pdb, mol_match_pdb, cell_matrix):
+def extract_cell_parameters(cif_file):
+    """Extracts the unit cell parameters from a CIF file."""
+    cell_params = {}
+    keys = [
+        "_cell_length_a", "_cell_length_b", "_cell_length_c",
+        "_cell_angle_alpha", "_cell_angle_beta", "_cell_angle_gamma"
+    ]
+
+    with open(cif_file, 'r') as file:
+        for line in file:
+            for key in keys:
+                if line.startswith(key):
+
+                    value = re.split(r'\s+', line, maxsplit=1)[1]
+                    new_value = re.sub(r'\(.*?\)', '', value).strip()
+
+                    cell_params[key] = new_value
+    return cell_params if len(cell_params) == 6 else None
+
+
+def reorder_atoms(mol_pdb_fname, mol_repeat_pdb, mol_match_pdb, original_cif, cell_matrix):
 
     """
     Fucntion reorders the atom sequence of a suprecell pdb saved from Mercury similar to the single molecule pdb which has been used to generate the suprecell.
@@ -89,13 +110,20 @@ def reorder_atoms(mol_pdb_fname, mol_repeat_pdb, mol_match_pdb, cell_matrix):
     
 
     matrix = list(map(int, cell_matrix.split(',')))
+    cell_params = extract_cell_parameters(original_cif)
+    print(cell_params)
     with open(mol_match_pdb, 'w') as outfile, open(mol_pdb_fname, 'r') as infile:
+        new_line = (
+                        f"CRYST1 {float(cell_params['_cell_length_a']) * matrix[0]:8.4f} "
+                        f"{float(cell_params['_cell_length_b']) * matrix[1]:8.4f} "
+                        f"{float(cell_params['_cell_length_c']) * matrix[2]:8.4f} "
+                        f"{float(cell_params['_cell_angle_alpha']):6.2f} "
+                        f"{float(cell_params['_cell_angle_beta']):6.2f} "
+                        f"{float(cell_params['_cell_angle_gamma']):6.2f}  P 1\n"
+                    )
+        outfile.write(new_line)
         for line in infile:
-            if line.startswith('CRYST1'):
-                parts = line.split()
-                new_line = f"CRYST1 {float(parts[1]) * matrix[0]:8.4f} {float(parts[2]) * matrix[1]:8.4f} {float(parts[3]) * matrix[2]:8.4f}  {parts[4]}  {parts[5]}  {parts[6]}  P 1\n"
-                outfile.write(new_line)
-            elif line.startswith('HETATM'):
+            if line.startswith('HETATM'):
                 break
             else:
                 outfile.write(line) 
@@ -136,8 +164,10 @@ if __name__ == '__main__':
                     help='(in) file name of the supercell pdb file')
     parser.add_argument('--output', metavar='pdb file', default='out.pdb',
                     help='(out) file name for the reordered supercell molecule ')
+    parser.add_argument('--input2', metavar='cif file', default='in.cif',
+                    help='(in) file name of the original cif file')
     parser.add_argument('--matrix', default='1,1,1', 
                     help='Scaling factors (a,b,c) for the supercell dimensions.')
 
     args = parser.parse_args()
-    reorder_atoms(args.template, args.input, args.output, args.matrix)
+    reorder_atoms(args.template, args.input, args.output, args.input2, args.matrix)

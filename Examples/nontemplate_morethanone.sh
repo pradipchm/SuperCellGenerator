@@ -21,11 +21,11 @@ pdb_file="${cif_base}.pdb"
 sdf_file="${cif_base}.sdf"
 
 # Convert CIF to PDB and clean up
-obabel "$cif_file" -O "$pdb_file"
+codcif2sdf "$cif_file" > "$sdf_file"
+obabel "$sdf_file" -O "$pdb_file"
 sed -i '/^CONECT/d' "$pdb_file"
 
 # Convert CIF to SDF and split into separate molecules
-codcif2sdf "$cif_file" > "$sdf_file"
 obabel "$sdf_file" -O "${cif_base}_.pdb" -m --separate
 
 # Remove CONECT lines from all generated PDB files
@@ -34,7 +34,7 @@ for pdb in ${cif_base}_*.pdb; do
 done
 
 # Reorder atoms in the first molecule
-./reorder-atoms.py --input "${cif_base}_1.pdb" --output "${cif_base}_1_reorder.pdb" --template template.pdb --input2 "$pdb_file"
+./reorder_atoms.py --input "${cif_base}_1.pdb" --output "${cif_base}_1_reorder.pdb" --template template.pdb
 
 # Generate supercell
 ./ASE_cif_to_pymatgen_supercell_cif.py --input "$cif_file" --output supercell.cif --matrix "$matrix"
@@ -54,7 +54,7 @@ obabel mol*_reordered.pdb -O supercell.pdb --join
 rm mol*.pdb
 
 # Map sequence using the reordered molecule as a template
-./mapping_sequence.py --input supercell.pdb --output supercell_reorder.pdb --template "${cif_base}_1_reorder.pdb" --matrix "$matrix"
+./mapping_sequence.py --input supercell.pdb --output supercell_reorder.pdb --template "${cif_base}_1_reorder.pdb" --input2 "$cif_file" --matrix "$matrix"
 
 echo "Processing completed for $cif_base with matrix $matrix."
 

@@ -4,7 +4,7 @@ import numpy as np
 import rdkit.Chem
 import re
 
-def reorder_atoms(mol_pdb_fname, template_pdb_fname, output_pdb_fname, original_pdb_file):
+def reorder_atoms(mol_pdb_fname, template_pdb_fname, output_pdb_fname):
     from rdkit.Chem import rdmolfiles
     """
     function reorders the atom sequence of a PDB file to match the atom sequence of another PDB file.
@@ -55,7 +55,7 @@ def reorder_atoms(mol_pdb_fname, template_pdb_fname, output_pdb_fname, original_
                     temp_factor=0.0,
                     atom_type = re.split(r'(\s*\d+)', pdb_entry_template.GetName().strip())[0]
             )
-    with open(original_pdb_file, 'r') as infile, open(output_pdb_fname, 'w') as f:
+    with open(mol_pdb_fname, 'r') as infile, open(output_pdb_fname, 'w') as f:
         for line in infile:
             if line.startswith('HETATM'):
                 break
@@ -108,12 +108,10 @@ if __name__ == '__main__':
                     help='(in) pdb file name of the template molecule with the desired order')
     parser.add_argument('--output', metavar='pdb file', default='out.pdb',
                     help='(out) pdb file name for the reordered molecule')
-    parser.add_argument('--input2', metavar='pdb file', default='in.pdb',
-                    help='(out) pdb file name of the molecule to be reoredered, different when there is more molecule in the pdb, needed just to read the cell vector')
     parser.add_argument('--novalidation', action='store_true',
                     help='Skip validation of output.')
 
     args = parser.parse_args()
-    reorder_atoms(args.input, args.template, args.output, args.input2)
+    reorder_atoms(args.input, args.template, args.output)
     if not args.novalidation:
         validate(args.template, args.output)

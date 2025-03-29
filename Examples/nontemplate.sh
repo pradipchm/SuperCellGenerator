@@ -37,17 +37,19 @@ fi
 
 # Define filenames based on input CIF
 PDB_FILE="${CIF_FILE}.pdb"
+SDF_FILE="${CIF_FILE}.sdf"
 UNIQUE_PDB_FILE="${CIF_FILE}_unique.pdb"
 REORDERED_PDB_FILE="${CIF_FILE}_reordered.pdb"
 SUPERCELL_CIF="supercell.cif"
 SUPERCELL_SDF="supercell.sdf"
 SUPERCELL_PDB="supercell.pdb"
-REORDERED_SUPERCELL_PDB="supercell_reordered.pdb"
+REORDERED_SUPERCELL_PDB="supercell_reorder.pdb"
 
 echo "Processing CIF: $CIF_FILE.cif with matrix: $MATRIX"
 
 # Step 1: Convert CIF to PDB
-obabel "${CIF_FILE}.cif" -O "$PDB_FILE"
+codcif2sdf "${CIF_FILE}.cif" > "$SDF_FILE" 
+obabel "$SDF_FILE" -O "$PDB_FILE"
 
 # Step 2: Remove CONECT lines from PDB
 sed -i '/^CONECT/d' "$PDB_FILE"
@@ -56,7 +58,7 @@ sed -i '/^CONECT/d' "$PDB_FILE"
 ./unique_atom_name.py --input "$PDB_FILE" --output "$UNIQUE_PDB_FILE"
 
 # Step 4: Reorder atoms based on unique PDB
-./reorder-atoms.py --input "$UNIQUE_PDB_FILE" --output "$REORDERED_PDB_FILE" --template template.pdb --input2 "$UNIQUE_PDB_FILE"
+./reorder_atoms.py --input "$UNIQUE_PDB_FILE" --output "$REORDERED_PDB_FILE" --template template.pdb 
 
 echo "Atom reordering complete. Proceeding with supercell generation..."
 
@@ -82,7 +84,7 @@ obabel mol*_reordered.pdb -O "$SUPERCELL_PDB" --join
 rm -f mol*.pdb
 
 # Step 12: Perform final mapping sequence using reordered PDB as template
-./mapping_sequence.py --input "$SUPERCELL_PDB" --output "$REORDERED_SUPERCELL_PDB" --template "$REORDERED_PDB_FILE" --matrix "$MATRIX"
+./mapping_sequence.py --input "$SUPERCELL_PDB" --output "$REORDERED_SUPERCELL_PDB" --template "$REORDERED_PDB_FILE"  --input2 "${CIF_FILE}.cif" --matrix "$MATRIX"
 
 echo "Processing completed. Final reordered supercell PDB: $REORDERED_SUPERCELL_PDB"
 
